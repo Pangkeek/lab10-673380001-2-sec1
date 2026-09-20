@@ -11,7 +11,7 @@ import reactor.test.StepVerifier;
  * Lab10ApplicationTests — ทดสอบ Reactive code
  *
  * ✅ test findById() ทำเสร็จแล้วเป็นตัวอย่าง
- * ❌ TODO: เพิ่ม test สำหรับ method ที่นักศึกษาทำเอง
+ * มี test ครอบคลุม method หลักที่นักศึกษาทำเพิ่ม
  *
  * StepVerifier — วิธีทดสอบ Mono/Flux:
  *   StepVerifier.create(mono/flux)
@@ -56,21 +56,30 @@ class Lab10ApplicationTests {
 
     @Test
     void testFindAll() {
-        // TODO: ทดสอบว่า findAll() คืน Flux ที่มี element
-        // Hint: StepVerifier.create(repository.findAll())
-        //         .expectNextCount(3)   ← มี 3 รายการ
-        //         .verifyComplete()
+        StepVerifier.create(repository.findAll().collectList())
+                .expectNextMatches(products -> products.size() >= 3)
+                .verifyComplete();
     }
 
     @Test
     void testSave() {
-        // TODO: ทดสอบ save() บันทึกแล้วคืน Product
-        // Hint: สร้าง Product ใหม่ → save → expectNext → verifyComplete
+        Product product = new Product("test-4", "Reactive Programming Book",
+                "Books", "Student Press", 5, 350.0, "MEMBER");
+
+        StepVerifier.create(repository.save(product))
+                .expectNextMatches(saved -> saved.getId().equals("test-4")
+                        && saved.getName().equals("Reactive Programming Book"))
+                .verifyComplete();
+
+        StepVerifier.create(repository.findById("test-4"))
+                .expectNextMatches(saved -> saved.getCategory().equals("Books"))
+                .verifyComplete();
     }
 
     @Test
     void testFindByCategory() {
-        // TODO: ทดสอบ findByCategory("Electronics")
-        // Hint: expectNextCount(3) เพราะมี 3 รายการใน Electronics
+        StepVerifier.create(repository.findByCategory("Electronics"))
+                .expectNextCount(3)
+                .verifyComplete();
     }
 }
